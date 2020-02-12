@@ -370,18 +370,18 @@ mcmc.out <- function (
 
   ##### Surface plot section #####
   # note: depends on gplots which is no longer installed by default
-    if(surface == TRUE)
-     {
-      dev.new()
-      par(new=FALSE)                                    # use a new window
-      gplots::hist2d(mcmcobject[,surf1],                # x data as a vector
-                     mcmcobject[,surf2],                # y data as a vector
-                     nbins=100,
-                     na.rm=TRUE,
-                     xlab=paste("parameter",surf1),
-                     ylab=paste("parameter",surf2),
-                     show=TRUE,                         # make figure or not
-                     col=c("GREY", topo.colors(20)))
-     }                                                  # close surface plot loop
+    # if(surface == TRUE)
+    #  {
+    #   dev.new()
+    #   par(new=FALSE)                                    # use a new window
+    #   gplots::hist2d(mcmcobject[,surf1],                # x data as a vector
+    #                  mcmcobject[,surf2],                # y data as a vector
+    #                  nbins=100,
+    #                  na.rm=TRUE,
+    #                  xlab=paste("parameter",surf1),
+    #                  ylab=paste("parameter",surf2),
+    #                  show=TRUE,                         # make figure or not
+    #                  col=c("GREY", topo.colors(20)))
+    #  }                                                  # close surface plot loop
 
  }                                                      # end function
