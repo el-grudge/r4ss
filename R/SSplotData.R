@@ -136,13 +136,17 @@ SSplotData <- function(replist,
       "mnwgt",         "Mean body weight",                              #12
       "discard",       "Discards",                                      #13
       "tagrelease",    "Tag releases",                                  #14 
-      "tagdbase1",     "Tag recaptures"),ncol=2,byrow=TRUE)             #15
+      "tagdbase1",     "Tag recaptures",                                #15
+      "empty",          ""),ncol=2,byrow=TRUE)    #16
   # note: tagdbase2 excluded since it is not fleet specific and the years
   #       should always match those in tagdbase1
 
   # exclude ghost fleet observations if requested
   if(!ghost){
     typetable <- typetable[-grep("ghost",typetable[,1]),]
+  }
+  if(datatypes[1] == "all"){
+    typetable <- typetable[-grep("empty",typetable[,1]),]
   }
   typenames <- typetable[,1]
   typelabels <- typetable[,2]
@@ -155,6 +159,15 @@ SSplotData <- function(replist,
   ### --- 11/2015 Cole added a "size" column to this data so that relative
   ### uncertainties can be used for cex values in a new plot below.
   for(itype in 1:length(typenames)){
+    if(typenames[itype] == "empty"){
+      typetable <- rbind(typetable,
+        data.frame(yr = -startyr,
+                   fleet = ifelse(fleets[1] == "all", 1, fleets[1]),
+                   itype = max(typetable[,"itype"])+1,
+                   typename = "empty", size = 0))
+      ntypes <- ntypes + 1
+      next
+    }
     dat <- get(typenames[itype])
     typename <- typenames[itype]
     # confirm that there is non-NA data of this type
@@ -311,7 +324,7 @@ SSplotData <- function(replist,
                             typetable$typename %in% datatypes,]
 
   # define dimensions of plot
-  ntypes <- max(typetable2$itype)
+  ntypes <- length(unique(typetable2$itype))
   # fleets2 is a subset of fleets that have data of the requested types
   fleets2 <- sort(unique(typetable2$fleet))
   fleets2 <- fleets2[fleets2 %in% c(0,fleets)]
@@ -323,10 +336,7 @@ SSplotData <- function(replist,
   
   # define colors
   if(fleetcol[1]=="default"){
-    if(nfleets2>3) fleetcol <- rich.colors.short(nfleets2+1)[-1]
-    if(nfleets2==1) fleetcol <- "grey40"
-    if(nfleets2==2) fleetcol <- rich.colors.short(nfleets2)
-    if(nfleets2==3) fleetcol <- c("blue","red","green3")
+    fleetcol <- fleetcolors(nfleets2)
   }else{
     if(length(fleetcol) < nfleets2) fleetcol=rep(fleetcol,nfleets2)
   }
@@ -334,7 +344,7 @@ SSplotData <- function(replist,
   # function containing plotting commands
   plotdata <- function(datasize){
     par(mar=margins) # multi-panel plot
-    xlim <- c(-1,1)+range(typetable2$yr,na.rm=TRUE)
+    xlim <- c(-1,1)+range(abs(typetable2$yr),na.rm=TRUE)
     yval <- 0
     # count number of unique combinations of fleet and data type
     ymax <- sum(as.data.frame(table(typetable2$fleet,typetable2$itype))$Freq>0)
@@ -381,6 +391,11 @@ SSplotData <- function(replist,
             if(is.na(y[2])) solo[1] <- TRUE
             if(is.na(y[n-1])) solo[n] <- TRUE
           }
+          axistable[itick,] <- c(
+            ifelse(typename %in% c("empty"), "", fleetnames[ifleet]),
+            yval)
+          itick <- itick+1
+          if(typename == "empty") next
           if(!datasize){
             ## The original plot is to add points and lines
             points(x[solo], y[solo], pch=16, cex=cex, col=col)
@@ -394,8 +409,6 @@ SSplotData <- function(replist,
                     bg=adjustcolor(col, alpha.f=alphasize),
                     add=TRUE, inches=FALSE)
           }
-          axistable[itick,] <- c(ifleet,yval)
-          itick <- itick+1
         }
       }
       yval <- yval+2
@@ -414,7 +427,7 @@ SSplotData <- function(replist,
       plotdata(datasize=FALSE)
     }
     if(print) {
-      caption <- "Data presence by year for each fleet and data type"
+      caption <- "Data presence by year for each fleet and data type."
       plotinfo <- pngfun(file="data_plot.png", caption=caption)
       plotdata(datasize=FALSE)
       dev.off()
@@ -459,4 +472,19 @@ SSplotData <- function(replist,
     returnlist$plotinfo <- plotinfo
   }
   return(invisible(returnlist))
+}
+
+#' Color Scheme for Fleets
+#' 
+#' A vector of colors used for different fleets.
+#' 
+#' @param n An integer supplying the number of colors needed.
+#' @return A vector of colors.
+#' 
+fleetcolors <- function(n) {
+  if(n>3) fleetcol <- rich.colors.short(n+1)[-1]
+  if(n==1) fleetcol <- "grey40"
+  if(n==2) fleetcol <- rich.colors.short(n)
+  if(n==3) fleetcol <- c("blue","red","green3")
+  return(fleetcol)
 }
