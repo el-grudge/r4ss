@@ -459,7 +459,7 @@ SS_readdat_3.30 <-
     ind.tmp <- ind # save current position in case necessary to re-read
     endmwa <- ind - 2 + grep("-9999", dat[ind:length(dat)])[1]
     xx <- dat[ind:endmwa]
-    if (length(unique(sapply(strsplit(xx, "\\s"), length))) > 1) {
+    if (length(unique(sapply(strsplit(xx, "\\s+"), length))) > 1) {
       if(verbose){
         message("Format of MeanSize_at_Age_obs appears to have sample sizes",
                 "on separate lines than other inputs.")
